@@ -16,7 +16,8 @@ const Categories = () => {
                         style={{ backgroundColor: category.bgColor }}
                         onClick={() => {
                             navigate(`/products/${category.path.toLowerCase()}`)
-                            scrollTo(0, 0)}}>
+                            scrollTo(0, 0)
+                        }}>
 
                         <img src={category.image} alt="" className='group-hover:scale-110 transition max-w-28' />
                         <p className='text-sm font-medium'>{category.text}</p>

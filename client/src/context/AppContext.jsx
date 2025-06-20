@@ -2,12 +2,15 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { dummyProducts } from '../asset/assets'
 import toast from "react-hot-toast";
+import axios from 'axios';
+
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
 
 export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
 
-    const currency = import.meta.VITE_CURRENCY;
+    const currency = import.meta.env.VITE_CURRENCY;
 
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
@@ -16,6 +19,7 @@ export const AppContextProvider = ({ children }) => {
     const [product, setProduct] = useState([])
 
     const [cartItems, setCartItems] = useState([]);
+    const [searchQuery, setSearchQuery] = useState({})
 
     //fetch all products
     const fetchProducts = async () => {
@@ -23,7 +27,7 @@ export const AppContextProvider = ({ children }) => {
     }
 
     //add products to cart
-    const addToCart = () => {
+    const addToCart = (itemId) => {
         let cartData = structuredClone(cartItems);
 
         if (cartData[itemId]) {
@@ -36,7 +40,7 @@ export const AppContextProvider = ({ children }) => {
     }
 
     //update cart item quantity
-    const updateCartItem = (itemId,quantity)=>{
+    const updateCartItem = (itemId, quantity) => {
         let cartData = structuredClone(cartItems);
         cartData[itemId] = quantity;
         setCartItems(cartData)
@@ -44,13 +48,45 @@ export const AppContextProvider = ({ children }) => {
     }
 
     //remove product from cart
-    const removeFromCart = (itemId) =>
+    const removeFromCart = (itemId) => {
+        let cartData = structuredClone(cartItems);
+        if (cartData[itemId]) {
+            cartData[itemId] -= 1;
+            if (cartData[itemId] === 0) {
+                delete cartData[itemId];
+            }
+        }
+        toast.success("Removed from Cart");
+        setCartItems(cartData)
+    }
+
+    //get Cart Item couunt
+    const getCartCount = () => {
+        let totalCount = 0;
+        for (const item in cartItems) {
+            totalCount += cartItems[item]
+
+        }
+        return totalCount;
+      
+    }
+
+    //get cart total Amount
+    const getCartAmount=()=>{
+          let totalAmount=0;
+          for(const items in cartItems){
+            let iteminfo=product.find((product)=>product._id ===items)
+            totalAmount+=iteminfo.offerPrice*cartItems[items];
+          }
+          return Math.floor(totalAmount*100)/100;
+          }
 
     useEffect(() => {
         fetchProducts()
     }, [])
 
-    const value = { navigate, user, setUser, setSeller, isSeller, showUserLogin, setShowUserLogin, product, currency ,updateCartItem};
+    const value = { navigate, user, setUser, setSeller, isSeller, showUserLogin, setShowUserLogin, product, currency, updateCartItem, removeFromCart, cartItems, addToCart, searchQuery, setSearchQuery,getCartAmount,getCartCount ,axios};
+
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
